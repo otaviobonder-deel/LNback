@@ -3,7 +3,10 @@
   "dockerfileLines": [
                         "FROM node:12.6.0-alpine",
                         "RUN mkdir -p /usr/src/app",
+                        "RUN mkdir -p /usr/src/app/LND",
                         "WORKDIR /usr/src/app",
+                        "COPY /root/LND/admin.macaroon /usr/src/app/LND"
+                        "COPY /root/LND/tls.cert /usr/src/app/LND"
                         "COPY ./package.json /usr/src/app/",
                         "RUN npm install && npm cache clean --force",
                         "COPY ./ /usr/src/app",
