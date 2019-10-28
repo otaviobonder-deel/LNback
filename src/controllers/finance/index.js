@@ -1,6 +1,8 @@
 const rp = require("request-promise");
 const dateFns = require("date-fns");
 
+const Periodicity = require('src/enum/periodicityEnum');
+
 module.exports = {
   async listStockPrice(req) {
     try {
@@ -64,13 +66,15 @@ module.exports = {
     let wallet = [];
     let accumulated = 0;
     let actualDate = new Date(start_date);
-    if (periodicity === "daily") {
+
+    if (periodicity === Periodicity.DAILY) {
       priceArray.forEach(day => {
         accumulated += amount / day[3];
         wallet.push({ date: new Date(day[0]), accumulated });
       });
     }
-    if (periodicity === "weekly") {
+
+    if (periodicity === Periodicity.WEEKLY) {
       priceArray.forEach(day => {
         if (new Date(day[0]).getDate() === actualDate.getDate()) {
           accumulated += amount / day[3];
@@ -79,7 +83,8 @@ module.exports = {
         }
       });
     }
-    if (periodicity === "monthly") {
+
+    if (periodicity === Periodicity.MONTHLY) {
       priceArray.forEach(day => {
         if (new Date(day[0]).getDate() === actualDate.getDate()) {
           accumulated += amount / day[3];
@@ -88,6 +93,7 @@ module.exports = {
         }
       });
     }
+
     return wallet;
   }
 };
