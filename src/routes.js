@@ -6,5 +6,6 @@ routes.get("/", function(req, res) {
 });
 
 routes.use("/lightning", require("./routes/lnd"));
+routes.use("/finance", require("./routes/finance"));
 
 module.exports = routes;
