@@ -1,7 +1,7 @@
 const rp = require("request-promise");
 const dateFns = require("date-fns");
 
-const Periodicity = require('src/enum/periodicityEnum');
+const Periodicity = require("../../enum/periodicityEnum");
 
 module.exports = {
   async listStockPrice(req) {
