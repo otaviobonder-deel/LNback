@@ -1,6 +1,5 @@
 const express = require("express");
 const routes = express.Router();
-const rp = require("request-promise");
 const financeController = require("../controllers/finance");
 
 routes.get("/liststock", async (req, res) => {
@@ -21,18 +20,22 @@ routes.get("/btc", async (req, res) => {
 routes.get("/simulate", async (req, res) => {
   const btcPrice = await financeController.getBtcPrice(req);
   const stockPrice = await financeController.listStockPrice(req);
-  const btcAccumulated = financeController.calculateBtcAmount(
+
+  const btcAccumulated = financeController.calculateBtcAmount({
     btcPrice,
-    req.query.periodicity,
-    req.query.investment,
-    req.query.start_date
-  );
-  const stockAccumulated = financeController.calculateStockAmount(
     stockPrice,
-    req.query.periodicity,
-    req.query.investment,
-    req.query.start_date
-  );
+    periodicity: req.query.periodicity,
+    investment: req.query.investment,
+    start_date: req.query.start_date
+  });
+
+  const stockAccumulated = financeController.calculateStockAmount({
+    stockPrice,
+    periodicity: req.query.periodicity,
+    investment: req.query.investment,
+    start_date: req.query.start_date
+  });
+
   return res.json({ btc: btcAccumulated, stock: stockAccumulated });
 });
 

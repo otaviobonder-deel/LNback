@@ -64,7 +64,13 @@ module.exports = {
     }
   },
 
-  calculateBtcAmount(priceArray, periodicity, amount, start_date) {
+  calculateBtcAmount({
+    btcPrice: priceArray,
+    stockPrice,
+    periodicity,
+    investment: amount,
+    start_date
+  }) {
     let wallet = [];
     let accumulated = 0;
     let invested = 0;
@@ -120,11 +126,17 @@ module.exports = {
     return wallet;
   },
 
-  calculateStockAmount(priceArray, periodicity, amount, start_date) {
+  calculateStockAmount({
+    stockPrice: priceArray,
+    periodicity,
+    investment: amount,
+    start_date
+  }) {
     // get stock prices post start_date
     let inDate = [],
       key;
     const date = new Date(start_date);
+
     for (key in priceArray) {
       if (periodicity === Periodicity.DAILY) {
         if (
