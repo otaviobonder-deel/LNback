@@ -6,16 +6,18 @@ const Periodicity = require("../../enum/periodicityEnum");
 module.exports = {
   async listStockPrice(req) {
     try {
-      return await rp({
+      const result = await rp({
         uri: process.env.FINANCEAPIURL,
         qs: {
-          function: `TIME_SERIES_${req.query.periodicity.toUpperCase()}`,
+          function: "TIME_SERIES_DAILY",
           symbol: req.query.symbol,
           outputsize: "full",
           apikey: process.env.FINANCEAPIURL
         },
         json: true
       });
+      const key = Object.keys(result)[1];
+      return result[key];
     } catch (e) {
       return new Error(e);
     }
@@ -65,12 +67,21 @@ module.exports = {
   calculateBtcAmount(priceArray, periodicity, amount, start_date) {
     let wallet = [];
     let accumulated = 0;
+    let invested = 0;
     let actualDate = new Date(start_date);
 
     if (periodicity === Periodicity.DAILY) {
       priceArray.forEach(day => {
-        accumulated += amount / day[3];
-        wallet.push({ date: new Date(day[0]), accumulated });
+        if (!dateFns.isWeekend(new Date(day[0]))) {
+          accumulated += amount / day[3];
+          invested += parseFloat(amount);
+          wallet.push({
+            date: new Date(day[0]),
+            accumulated,
+            investment_total: accumulated * day[3],
+            invested
+          });
+        }
       });
     }
 
@@ -78,7 +89,13 @@ module.exports = {
       priceArray.forEach(day => {
         if (new Date(day[0]).getDate() === actualDate.getDate()) {
           accumulated += amount / day[3];
-          wallet.push({ date: new Date(day[0]), accumulated });
+          invested += parseFloat(amount);
+          wallet.push({
+            date: new Date(day[0]),
+            accumulated,
+            investment_total: accumulated * day[3],
+            invested
+          });
           actualDate = dateFns.addWeeks(actualDate, 1);
         }
       });
@@ -88,11 +105,57 @@ module.exports = {
       priceArray.forEach(day => {
         if (new Date(day[0]).getDate() === actualDate.getDate()) {
           accumulated += amount / day[3];
-          wallet.push({ date: new Date(day[0]), accumulated });
+          invested += parseFloat(amount);
+          wallet.push({
+            date: new Date(day[0]),
+            accumulated,
+            investment_total: accumulated * day[3],
+            invested
+          });
           actualDate = dateFns.addMonths(actualDate, 1);
         }
       });
     }
+
+    return wallet;
+  },
+
+  calculateStockAmount(priceArray, periodicity, amount, start_date) {
+    // get stock prices post start_date
+    let inDate = [],
+      key;
+    const date = new Date(start_date);
+    for (key in priceArray) {
+      if (periodicity === Periodicity.DAILY) {
+        if (
+          priceArray.hasOwnProperty(key) &&
+          (dateFns.isAfter(new Date(key), date) ||
+            dateFns.isEqual(new Date(key), date))
+        ) {
+          inDate.push({
+            date: new Date(key),
+            close: parseFloat(priceArray[key]["4. close"])
+          });
+        }
+      }
+    }
+    inDate.reverse();
+
+    // calculate portfolio
+    let wallet = [];
+    let accumulated = 0;
+    let invested = 0;
+
+    inDate.forEach(day => {
+      accumulated += amount / day.close;
+      invested += parseFloat(amount);
+      wallet.push({
+        date: day.date,
+        accumulated,
+        investment_total: accumulated * day.close,
+        invested
+      });
+    });
 
     return wallet;
   }
