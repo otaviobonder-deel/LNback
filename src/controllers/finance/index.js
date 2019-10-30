@@ -64,49 +64,64 @@ module.exports = {
     }
   },
 
-  calculatePortfolio({ btcPrice, stockPrice, periodicity, investment, start_date }) {
+  calculatePortfolio({
+    btcPrice,
+    stockPrice,
+    periodicity,
+    investment,
+    start_date
+  }) {
     let wallet = [];
     let accumulatedBtc = 0;
     let accumulatedStock = 0;
     let invested = 0;
 
-    const year = start_date.substring(0, 4);
-    const month = start_date.substring(5, 7) - 1; // Months are inside an array, it seems.. Let`s use moment!
-    const day = start_date.substring(8);
-
-    let actualDate = new Date(year, month, day);
+    let actualDate = new Date(start_date);
     let dates = [];
 
     // create array of dates, to reverse them
-    if(periodicity === Periodicity.DAILY) {
-      for(let key in stockPrice) {
-        if(stockPrice.hasOwnProperty(key) &&
+    if (periodicity === Periodicity.DAILY) {
+      for (let key in stockPrice) {
+        if (
+          stockPrice.hasOwnProperty(key) &&
           (dateFns.isAfter(new Date(key), actualDate) ||
-            dateFns.isEqual(new Date(key), actualDate))) {
+            dateFns.isEqual(new Date(key), actualDate))
+        ) {
           dates.push(new Date(key));
         }
       }
+      dates.reverse();
     }
 
-    // NOT WORKING
-    else if(periodicity === Periodicity.WEEKLY) {
-      while(dateFns.isPast(actualDate)) {
-        if(stockPrice.hasOwnProperty(`${dateFns.getYear(actualDate)}-${dateFns.getMonth(actualDate)}-${dateFns.getDay(actualDate)}`)) {
+    // NOT WORKING!
+    else if (periodicity === Periodicity.WEEKLY) {
+      while (dateFns.isPast(actualDate)) {
+        if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
           dates.push(actualDate);
+          actualDate = dateFns.addWeeks(actualDate, 1);
+        } else {
+          actualDate = dateFns.addDays(actualDate, 1);
         }
-        actualDate = dateFns.addDays(actualDate, 1);
       }
-      console.log(dates);
+    } else {
+      while (dateFns.isPast(actualDate)) {
+        if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+          dates.push(actualDate);
+          actualDate = dateFns.addMonths(actualDate, 1);
+        } else {
+          actualDate = dateFns.addDays(actualDate, 1);
+        }
+      }
     }
-
-    dates.reverse();
 
     // create object with investment
     dates.forEach(day => {
       let obj = {};
 
-      btcPrice.forEach(btcDay => { // create object of bitcoin price
-        if(dateFns.isEqual(day, new Date(btcDay[0]))) {
+      btcPrice.forEach(btcDay => {
+        // create object of bitcoin price
+        let btcDate = new Date(btcDay[0]);
+        if (dateFns.isEqual(day, btcDate)) {
           accumulatedBtc += investment / btcDay[3];
           invested += parseFloat(investment);
 
@@ -117,16 +132,32 @@ module.exports = {
         }
       });
 
-      for(let key in stockPrice) {
-        if(stockPrice.hasOwnProperty(key) && dateFns.isEqual(new Date(key), day)) {
-          accumulatedStock += investment / stockPrice[key]["4. close"];
-          obj.accumulatedStock = accumulatedStock;
-          obj.investment_total_stock = accumulatedStock * stockPrice[key]["4. close"];
+      for (let key in stockPrice) {
+        if (stockPrice.hasOwnProperty(key)) {
+          let keyDate = new Date(key);
+
+          if (dateFns.isEqual(keyDate, day)) {
+            accumulatedStock += investment / stockPrice[key]["4. close"];
+            obj.accumulatedStock = accumulatedStock;
+            obj.investment_total_stock =
+              accumulatedStock * stockPrice[key]["4. close"];
+          }
         }
       }
       wallet.push(obj);
     });
 
     return wallet;
+  },
+
+  formatDate(date) {
+    let month = "" + (date.getMonth() + 1),
+      day = "" + date.getDate(),
+      year = date.getFullYear();
+
+    if (month.length < 2) month = "0" + month;
+    if (day.length < 2) day = "0" + day;
+
+    return [year, month, day].join("-");
   }
 };
