@@ -126,7 +126,7 @@ module.exports = {
           }
         }
 
-        return dates.reverse();
+        return dates;
 
       case Periodicity.WEEKLY:
         while (moment(actualDate).isBefore()) {
@@ -138,7 +138,7 @@ module.exports = {
           }
         }
         
-        return dates.reverse();
+        return dates;
       
       case Periodicity.MONTHLY:
         while (moment(actualDate).isBefore()) {
@@ -150,7 +150,7 @@ module.exports = {
           }
         }
         
-        return dates.reverse();
+        return dates;
     }
   },
 
