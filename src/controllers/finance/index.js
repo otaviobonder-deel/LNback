@@ -1,5 +1,5 @@
 const rp = require("request-promise");
-const dateFns = require("date-fns");
+const moment = require("moment");
 
 const Periodicity = require("../../enum/periodicityEnum");
 
@@ -76,7 +76,7 @@ module.exports = {
     let accumulatedStock = 0;
     let invested = 0;
 
-    let actualDate = new Date(start_date);
+    let actualDate = moment(start_date);
     let dates = [];
 
     // create array of dates, to reverse them
@@ -84,32 +84,31 @@ module.exports = {
       for (let key in stockPrice) {
         if (
           stockPrice.hasOwnProperty(key) &&
-          (dateFns.isAfter(new Date(key), actualDate) ||
-            dateFns.isEqual(new Date(key), actualDate))
+          moment(key).isSameOrAfter(actualDate)
         ) {
-          dates.push(new Date(key));
+          dates.push(moment(key));
         }
       }
       dates.reverse();
     }
 
-    // NOT WORKING!
+    // WORKING!
     else if (periodicity === Periodicity.WEEKLY) {
-      while (dateFns.isPast(actualDate)) {
+      while (moment(actualDate).isBefore()) {
         if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
-          dates.push(actualDate);
-          actualDate = dateFns.addWeeks(actualDate, 1);
+          dates.push(moment(actualDate));
+          actualDate = moment(actualDate).add(1, "w");
         } else {
-          actualDate = dateFns.addDays(actualDate, 1);
+          actualDate = moment(actualDate).add(1, "d");
         }
       }
     } else {
-      while (dateFns.isPast(actualDate)) {
+      while (moment(actualDate).isBefore()) {
         if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
-          dates.push(actualDate);
-          actualDate = dateFns.addMonths(actualDate, 1);
+          dates.push(moment(actualDate));
+          actualDate = moment(actualDate).add(1, "M");
         } else {
-          actualDate = dateFns.addDays(actualDate, 1);
+          actualDate = moment(actualDate).add(1, "d");
         }
       }
     }
@@ -120,12 +119,12 @@ module.exports = {
 
       btcPrice.forEach(btcDay => {
         // create object of bitcoin price
-        let btcDate = new Date(btcDay[0]);
-        if (dateFns.isEqual(day, btcDate)) {
+        let btcDate = moment(btcDay[0]);
+        if (moment(day).isSame(btcDate)) {
           accumulatedBtc += investment / btcDay[3];
           invested += parseFloat(investment);
 
-          (obj.date = new Date(btcDay[0])),
+          (obj.date = moment(btcDay[0])),
             (obj.accumulatedBtc = accumulatedBtc),
             (obj.invested = invested),
             (obj.investment_total_btc = accumulatedBtc * btcDay[3]);
@@ -134,9 +133,9 @@ module.exports = {
 
       for (let key in stockPrice) {
         if (stockPrice.hasOwnProperty(key)) {
-          let keyDate = new Date(key);
+          let keyDate = moment(key);
 
-          if (dateFns.isEqual(keyDate, day)) {
+          if (moment(keyDate).isSame(day)) {
             accumulatedStock += investment / stockPrice[key]["4. close"];
             obj.accumulatedStock = accumulatedStock;
             obj.investment_total_stock =
@@ -151,9 +150,9 @@ module.exports = {
   },
 
   formatDate(date) {
-    let month = "" + (date.getMonth() + 1),
-      day = "" + date.getDate(),
-      year = date.getFullYear();
+    let month = "" + (moment(date).month() + 1),
+      day = "" + moment(date).date(),
+      year = moment(date).year();
 
     if (month.length < 2) month = "0" + month;
     if (day.length < 2) day = "0" + day;
