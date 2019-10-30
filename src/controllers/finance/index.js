@@ -1,7 +1,7 @@
 const rp = require("request-promise");
 const moment = require("moment");
 
-const Periodicity = require("../../enum/periodicityEnum");
+const Periodicity = require("../../domain/enum/periodicityEnum");
 
 module.exports = {
   async listStockPrice(req) {
@@ -64,62 +64,24 @@ module.exports = {
     }
   },
 
-  calculatePortfolio({
-    btcPrice,
-    stockPrice,
-    periodicity,
-    investment,
-    start_date
-  }) {
+  calculatePortfolio({ btcPrice, stockPrice, periodicity, investment, start_date }) {
+    const dates = this.dateFilter({ stockPrice, periodicity, actualDate: moment(start_date) });
+
+    return this.buildWallet({ dates, btcPrice, stockPrice, investment });
+  },
+
+  buildWallet({ dates, btcPrice, stockPrice, investment }) { // create object with investment
     let wallet = [];
     let accumulatedBtc = 0;
     let accumulatedStock = 0;
     let invested = 0;
 
-    let actualDate = moment(start_date);
-    let dates = [];
-
-    // create array of dates, to reverse them
-    if (periodicity === Periodicity.DAILY) {
-      for (let key in stockPrice) {
-        if (
-          stockPrice.hasOwnProperty(key) &&
-          moment(key).isSameOrAfter(actualDate)
-        ) {
-          dates.push(moment(key));
-        }
-      }
-      dates.reverse();
-    }
-
-    // WORKING!
-    else if (periodicity === Periodicity.WEEKLY) {
-      while (moment(actualDate).isBefore()) {
-        if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
-          dates.push(moment(actualDate));
-          actualDate = moment(actualDate).add(1, "w");
-        } else {
-          actualDate = moment(actualDate).add(1, "d");
-        }
-      }
-    } else {
-      while (moment(actualDate).isBefore()) {
-        if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
-          dates.push(moment(actualDate));
-          actualDate = moment(actualDate).add(1, "M");
-        } else {
-          actualDate = moment(actualDate).add(1, "d");
-        }
-      }
-    }
-
-    // create object with investment
     dates.forEach(day => {
       let obj = {};
 
-      btcPrice.forEach(btcDay => {
-        // create object of bitcoin price
+      btcPrice.forEach(btcDay => { // create object of bitcoin price
         let btcDate = moment(btcDay[0]);
+
         if (moment(day).isSame(btcDate)) {
           accumulatedBtc += investment / btcDay[3];
           invested += parseFloat(investment);
@@ -143,10 +105,53 @@ module.exports = {
           }
         }
       }
+
       wallet.push(obj);
     });
 
     return wallet;
+  },
+
+  dateFilter({ stockPrice, periodicity, actualDate }) { // create array of dates, to reverse them
+    let dates = [];
+
+    switch(periodicity) {
+      case Periodicity.DAILY:
+        for (let key in stockPrice) {
+          if (
+            stockPrice.hasOwnProperty(key) &&
+            moment(key).isSameOrAfter(actualDate)
+          ) {
+            dates.push(moment(key));
+          }
+        }
+
+        return dates.reverse();
+
+      case Periodicity.WEEKLY:
+        while (moment(actualDate).isBefore()) {
+          if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+            dates.push(moment(actualDate));
+            actualDate = moment(actualDate).add(1, "w");
+          } else {
+            actualDate = moment(actualDate).add(1, "d");
+          }
+        }
+        
+        return dates.reverse();
+      
+      case Periodicity.MONTHLY:
+        while (moment(actualDate).isBefore()) {
+          if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+            dates.push(moment(actualDate));
+            actualDate = moment(actualDate).add(1, "M");
+          } else {
+            actualDate = moment(actualDate).add(1, "d");
+          }
+        }
+        
+        return dates.reverse();
+    }
   },
 
   formatDate(date) {
