@@ -6,7 +6,6 @@ const FinanceSerializer = {
             btcTotal: finance[finance.length - 1].accumulatedBtc,
             chart: finance.map(f => {
                 delete f.accumulatedBtc;
-                delete f.invested;
                 delete f.accumulatedStock;
 
                 return f;
