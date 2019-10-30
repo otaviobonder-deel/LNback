@@ -64,109 +64,78 @@ module.exports = {
     }
   },
 
-  calculateBtcAmount({
-    btcPrice: priceArray,
+  calculatePortfolio({
+    btcPrice,
     stockPrice,
     periodicity,
-    investment: amount,
+    investment,
     start_date
   }) {
-    let wallet = [];
-    let accumulated = 0;
+    let wallet = [],
+      key;
+    let accumulatedBtc = 0;
+    let accumulatedStock = 0;
     let invested = 0;
     let actualDate = new Date(start_date);
+    let dates = [];
 
+    // create array of dates, to reverse them
     if (periodicity === Periodicity.DAILY) {
-      priceArray.forEach(day => {
-        if (!dateFns.isWeekend(new Date(day[0]))) {
-          accumulated += amount / day[3];
-          invested += parseFloat(amount);
-          wallet.push({
-            date: new Date(day[0]),
-            accumulated,
-            investment_total: accumulated * day[3],
-            invested
-          });
-        }
-      });
-    }
-
-    if (periodicity === Periodicity.WEEKLY) {
-      priceArray.forEach(day => {
-        if (new Date(day[0]).getDate() === actualDate.getDate()) {
-          accumulated += amount / day[3];
-          invested += parseFloat(amount);
-          wallet.push({
-            date: new Date(day[0]),
-            accumulated,
-            investment_total: accumulated * day[3],
-            invested
-          });
-          actualDate = dateFns.addWeeks(actualDate, 1);
-        }
-      });
-    }
-
-    if (periodicity === Periodicity.MONTHLY) {
-      priceArray.forEach(day => {
-        if (new Date(day[0]).getDate() === actualDate.getDate()) {
-          accumulated += amount / day[3];
-          invested += parseFloat(amount);
-          wallet.push({
-            date: new Date(day[0]),
-            accumulated,
-            investment_total: accumulated * day[3],
-            invested
-          });
-          actualDate = dateFns.addMonths(actualDate, 1);
-        }
-      });
-    }
-
-    return wallet;
-  },
-
-  calculateStockAmount({
-    stockPrice: priceArray,
-    periodicity,
-    investment: amount,
-    start_date
-  }) {
-    // get stock prices post start_date
-    let inDate = [],
-      key;
-    const date = new Date(start_date);
-
-    for (key in priceArray) {
-      if (periodicity === Periodicity.DAILY) {
+      for (key in stockPrice) {
         if (
-          priceArray.hasOwnProperty(key) &&
-          (dateFns.isAfter(new Date(key), date) ||
-            dateFns.isEqual(new Date(key), date))
+          stockPrice.hasOwnProperty(key) &&
+          (dateFns.isAfter(new Date(key), actualDate) ||
+            dateFns.isEqual(new Date(key), actualDate))
         ) {
-          inDate.push({
-            date: new Date(key),
-            close: parseFloat(priceArray[key]["4. close"])
-          });
+          dates.push(new Date(key));
         }
       }
     }
-    inDate.reverse();
 
-    // calculate portfolio
-    let wallet = [];
-    let accumulated = 0;
-    let invested = 0;
+    // NOT WORKING
+    if (periodicity === Periodicity.WEEKLY) {
+      if (dateFns.isWeekend(actualDate)) {
+        actualDate = dateFns.addBusinessDays(actualDate, 1);
+      }
+      if (
+        stockPrice.hasOwnProperty(key) &&
+        dateFns.isEqual(new Date(key), actualDate)
+      ) {
+        dates.push(new Date(key));
+      }
+      actualDate = dateFns.addWeeks(actualDate, 1);
+    }
 
-    inDate.forEach(day => {
-      accumulated += amount / day.close;
-      invested += parseFloat(amount);
-      wallet.push({
-        date: day.date,
-        accumulated,
-        investment_total: accumulated * day.close,
-        invested
+    dates.reverse();
+
+    // create object with investment
+    dates.forEach(day => {
+      let obj = {};
+      btcPrice.forEach(btcDay => {
+        // create object of bitcoin price
+        if (dateFns.isEqual(day, new Date(btcDay[0]))) {
+          accumulatedBtc += investment / btcDay[3];
+          invested += parseFloat(investment);
+
+          (obj.date = new Date(btcDay[0])),
+            (obj.accumulatedBtc = accumulatedBtc),
+            (obj.invested = invested),
+            (obj.investment_total_btc = accumulatedBtc * btcDay[3]);
+        }
       });
+
+      for (key in stockPrice) {
+        if (
+          stockPrice.hasOwnProperty(key) &&
+          dateFns.isEqual(new Date(key), day)
+        ) {
+          accumulatedStock += investment / stockPrice[key]["4. close"];
+          obj.accumulatedStock = accumulatedStock;
+          obj.investment_total_stock =
+            accumulatedStock * stockPrice[key]["4. close"];
+        }
+      }
+      wallet.push(obj);
     });
 
     return wallet;

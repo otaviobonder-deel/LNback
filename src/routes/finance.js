@@ -21,7 +21,7 @@ routes.get("/simulate", async (req, res) => {
   const btcPrice = await financeController.getBtcPrice(req);
   const stockPrice = await financeController.listStockPrice(req);
 
-  const btcAccumulated = financeController.calculateBtcAmount({
+  const btcAccumulated = financeController.calculatePortfolio({
     btcPrice,
     stockPrice,
     periodicity: req.query.periodicity,
@@ -29,14 +29,7 @@ routes.get("/simulate", async (req, res) => {
     start_date: req.query.start_date
   });
 
-  const stockAccumulated = financeController.calculateStockAmount({
-    stockPrice,
-    periodicity: req.query.periodicity,
-    investment: req.query.investment,
-    start_date: req.query.start_date
-  });
-
-  return res.json({ btc: btcAccumulated, stock: stockAccumulated });
+  return res.json(btcAccumulated);
 });
 
 module.exports = routes;
