@@ -94,16 +94,19 @@ module.exports = {
 
     // NOT WORKING
     if (periodicity === Periodicity.WEEKLY) {
-      if (dateFns.isWeekend(actualDate)) {
-        actualDate = dateFns.addBusinessDays(actualDate, 1);
+      while (dateFns.isPast(actualDate)) {
+        if (
+          stockPrice.hasOwnProperty(
+            `${dateFns.getYear(actualDate)}-${dateFns.getMonth(
+              actualDate
+            )}-${dateFns.getDay(actualDate)}`
+          )
+        ) {
+          dates.push(actualDate);
+        }
+        actualDate = dateFns.addDays(actualDate, 1);
       }
-      if (
-        stockPrice.hasOwnProperty(key) &&
-        dateFns.isEqual(new Date(key), actualDate)
-      ) {
-        dates.push(new Date(key));
-      }
-      actualDate = dateFns.addWeeks(actualDate, 1);
+      console.log(dates);
     }
 
     dates.reverse();
