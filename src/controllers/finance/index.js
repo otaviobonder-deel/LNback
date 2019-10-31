@@ -81,47 +81,51 @@ module.exports = {
   },
 
   buildWallet({ dates, btcPrice, stockPrice, investment }) {
-    // create object with investment
-    let wallet = [];
-    let accumulatedBtc = 0;
-    let accumulatedStock = 0;
-    let invested = 0;
+    try {
+      // create object with investment
+      let wallet = [];
+      let accumulatedBtc = 0;
+      let accumulatedStock = 0;
+      let invested = 0;
 
-    dates.forEach(day => {
-      let obj = {};
+      dates.forEach(day => {
+        let obj = {};
 
-      btcPrice.forEach(btcDay => {
-        // create object of bitcoin price
-        let btcDate = moment(btcDay[0]);
+        btcPrice.forEach(btcDay => {
+          // create object of bitcoin price
+          let btcDate = moment(btcDay[0]);
 
-        if (moment(day).isSame(btcDate)) {
-          accumulatedBtc += investment / btcDay[3];
-          invested += parseFloat(investment);
+          if (moment(day).isSame(btcDate)) {
+            accumulatedBtc += investment / btcDay[3];
+            invested += parseFloat(investment);
 
-          (obj.date = moment(btcDay[0])),
-            (obj.accumulatedBtc = accumulatedBtc),
-            (obj.invested = invested),
-            (obj.investment_total_btc = accumulatedBtc * btcDay[3]);
-        }
-      });
+            (obj.date = moment(btcDay[0])),
+              (obj.accumulatedBtc = accumulatedBtc),
+              (obj.invested = invested),
+              (obj.investment_total_btc = accumulatedBtc * btcDay[3]);
+          }
+        });
 
-      for (let key in stockPrice) {
-        if (stockPrice.hasOwnProperty(key)) {
-          let keyDate = moment(key);
+        for (let key in stockPrice) {
+          if (stockPrice.hasOwnProperty(key)) {
+            let keyDate = moment(key);
 
-          if (moment(keyDate).isSame(day)) {
-            accumulatedStock += investment / stockPrice[key]["4. close"];
-            obj.accumulatedStock = accumulatedStock;
-            obj.investment_total_stock =
-              accumulatedStock * stockPrice[key]["4. close"];
+            if (moment(day).isSame(keyDate)) {
+              accumulatedStock += investment / stockPrice[key]["4. close"];
+              obj.accumulatedStock = accumulatedStock;
+              obj.investment_total_stock =
+                accumulatedStock * stockPrice[key]["4. close"];
+            }
           }
         }
-      }
 
-      wallet.push(obj);
-    });
+        wallet.push(obj);
+      });
 
-    return wallet;
+      return wallet;
+    } catch (e) {
+      return new Error(e);
+    }
   },
 
   dateFilter({ stockPrice, periodicity, actualDate }) {
@@ -136,7 +140,7 @@ module.exports = {
               stockPrice.hasOwnProperty(key) &&
               moment(key).isSameOrAfter(actualDate)
             ) {
-              if (!moment(key).isSameOrAfter(moment(), 'day')) {
+              if (!moment(key).isSameOrAfter(moment(), "day")) {
                 dates.push(moment(key));
               }
             }
