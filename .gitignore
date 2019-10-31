@@ -70,5 +70,12 @@ fabric.properties
 # Environment variables
 *.env
 
+# VS Code
+.vscode
+
 # node_modules
 node_modules
+
+# Private
+*.cert
+*.macaroon
