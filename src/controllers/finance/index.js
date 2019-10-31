@@ -98,27 +98,23 @@ module.exports = {
           accumulatedBtc += investment / btcDay[3];
           invested += parseFloat(investment);
 
-          (obj.date = moment(btcDay[0])),
-            (obj.accumulatedBtc = accumulatedBtc),
-            (obj.invested = invested),
-            (obj.investment_total_btc = accumulatedBtc * btcDay[3]);
+          obj.date = btcDate;
+          obj.accumulatedBtc = accumulatedBtc;
+          obj.invested = invested;
+          obj.investment_total_btc = accumulatedBtc * btcDay[3];
         }
       });
 
-      for (let key in stockPrice) {
-        if (stockPrice.hasOwnProperty(key)) {
-          let keyDate = moment(key);
 
-          if (moment(keyDate).isSame(day)) {
-            accumulatedStock += investment / stockPrice[key]["4. close"];
-            obj.accumulatedStock = accumulatedStock;
-            obj.investment_total_stock =
-              accumulatedStock * stockPrice[key]["4. close"];
-          }
+      for (let key in stockPrice) {
+        if (stockPrice.hasOwnProperty(key) && moment(key).isSame(day)) {
+          accumulatedStock += investment / stockPrice[key]["4. close"];
+          obj.accumulatedStock = accumulatedStock;
+          obj.investment_total_stock = accumulatedStock * stockPrice[key]["4. close"];
         }
       }
 
-      wallet.push(obj);
+      if(obj.invested) wallet.push(obj);
     });
 
     return wallet;
@@ -132,13 +128,10 @@ module.exports = {
       switch (periodicity) {
         case Periodicity.DAILY:
           for (let key in stockPrice) {
-            if (
-              stockPrice.hasOwnProperty(key) &&
-              moment(key).isSameOrAfter(actualDate)
-            ) {
-              if (!moment(key).isSameOrAfter(moment(), 'day')) {
+            if (stockPrice.hasOwnProperty(key) 
+              && moment(key).isSameOrAfter(actualDate)
+              && !moment(key).isSameOrAfter(moment(), 'day')) {
                 dates.push(moment(key));
-              }
             }
           }
 

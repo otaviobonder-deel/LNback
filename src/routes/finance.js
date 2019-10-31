@@ -40,23 +40,22 @@ routes.get("/btc", async (req, res) => {
 });
 
 routes.get("/simulate", async (req, res) => {
-  let response;
 
   try {
     const btcPrice = await financeController.getBtcPrice(req);
     const stockPrice = await financeController.listStockPrice(req);
-  
-    response = financeController.calculatePortfolio({
-      btcPrice,
-      stockPrice,
-      periodicity: req.query.periodicity,
-      investment: req.query.investment,
-      start_date: req.query.start_date
-    });    
   } catch (error) {
     // Do something
   }
-  
+
+  const response = financeController.calculatePortfolio({
+    btcPrice,
+    stockPrice,
+    periodicity: req.query.periodicity,
+    investment: req.query.investment,
+    start_date: req.query.start_date
+  });   
+
   return res.json(FinanceSerializer.serialize(response, req.query.symbol));
 });
 
