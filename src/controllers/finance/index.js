@@ -1,5 +1,4 @@
 const rp = require("request-promise");
-const _ = require('lodash');
 const moment = require("moment");
 
 const Periodicity = require("../../domain/enum/periodicityEnum");
@@ -65,13 +64,24 @@ module.exports = {
     }
   },
 
-  calculatePortfolio({ btcPrice, stockPrice, periodicity, investment, start_date }) {
-    const dates = this.dateFilter({ stockPrice, periodicity, actualDate: moment(start_date) });
+  calculatePortfolio({
+    btcPrice,
+    stockPrice,
+    periodicity,
+    investment,
+    start_date
+  }) {
+    const dates = this.dateFilter({
+      stockPrice,
+      periodicity,
+      actualDate: moment(start_date)
+    });
 
     return this.buildWallet({ dates, btcPrice, stockPrice, investment });
   },
 
-  buildWallet({ dates, btcPrice, stockPrice, investment }) { // create object with investment
+  buildWallet({ dates, btcPrice, stockPrice, investment }) {
+    // create object with investment
     let wallet = [];
     let accumulatedBtc = 0;
     let accumulatedStock = 0;
@@ -80,7 +90,8 @@ module.exports = {
     dates.forEach(day => {
       let obj = {};
 
-      btcPrice.forEach(btcDay => { // create object of bitcoin price
+      btcPrice.forEach(btcDay => {
+        // create object of bitcoin price
         let btcDate = moment(btcDay[0]);
 
         if (moment(day).isSame(btcDate)) {
@@ -113,51 +124,53 @@ module.exports = {
     return wallet;
   },
 
-  dateFilter({ stockPrice, periodicity, actualDate }) { // create array of dates, to reverse them
-    let dates = [];
+  dateFilter({ stockPrice, periodicity, actualDate }) {
+    try {
+      // create array of dates, to reverse them
+      let dates = [];
 
-    switch(periodicity) {
-      case Periodicity.DAILY:
-        for (let key in stockPrice) {
-          if (
-            stockPrice.hasOwnProperty(key) &&
-            moment(key).isSameOrAfter(actualDate)
-          ) {
-            dates.push(moment(key));
+      switch (periodicity) {
+        case Periodicity.DAILY:
+          for (let key in stockPrice) {
+            if (
+              stockPrice.hasOwnProperty(key) &&
+              moment(key).isSameOrAfter(actualDate)
+            ) {
+              dates.push(moment(key));
+            }
           }
-        }
 
-        return _.orderBy(dates, o => {
-          return moment(o.format('YYYYMMDD'));
-        }, ['asc']);
+          if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
+          return dates;
 
-      case Periodicity.WEEKLY:
-        while (moment(actualDate).isBefore()) {
-          if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
-            dates.push(moment(actualDate));
-            actualDate = moment(actualDate).add(1, "w");
-          } else {
-            actualDate = moment(actualDate).add(1, "d");
+        case Periodicity.WEEKLY:
+          while (moment(actualDate).isBefore()) {
+            if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+              dates.push(moment(actualDate));
+              actualDate = moment(actualDate).add(1, "w");
+            } else {
+              actualDate = moment(actualDate).add(1, "d");
+            }
           }
-        }
-        
-        return _.orderBy(dates, o => {
-          return moment(o.format('YYYYMMDD'));
-        }, ['asc']);
-      
-      case Periodicity.MONTHLY:
-        while (moment(actualDate).isBefore()) {
-          if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
-            dates.push(moment(actualDate));
-            actualDate = moment(actualDate).add(1, "M");
-          } else {
-            actualDate = moment(actualDate).add(1, "d");
+
+          if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
+          return dates;
+
+        case Periodicity.MONTHLY:
+          while (moment(actualDate).isBefore()) {
+            if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+              dates.push(moment(actualDate));
+              actualDate = moment(actualDate).add(1, "M");
+            } else {
+              actualDate = moment(actualDate).add(1, "d");
+            }
           }
-        }
-        
-        return _.orderBy(dates, o => {
-          return moment(o.format('YYYYMMDD'));
-        }, ['asc']);
+
+          if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
+          return dates;
+      }
+    } catch (e) {
+      return new Error(e);
     }
   },
 

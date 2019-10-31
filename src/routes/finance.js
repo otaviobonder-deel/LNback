@@ -2,7 +2,7 @@ const express = require("express");
 const routes = express.Router();
 const financeController = require("../controllers/finance");
 
-const FinanceSerializer = require('../interface/http/FinanceSerializer');
+const FinanceSerializer = require("../interface/http/FinanceSerializer");
 
 routes.get("/liststock", async (req, res) => {
   const response = await financeController.listStockPrice(req);
