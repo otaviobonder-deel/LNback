@@ -16,6 +16,7 @@
     "fs": "^0.0.1-security",
     "grpc": "^1.24.0",
     "ln-service": "^46.5.0",
+    "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "react-select": "^3.0.8",
     "request": "^2.88.0",

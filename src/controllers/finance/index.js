@@ -1,4 +1,5 @@
 const rp = require("request-promise");
+const _ = require('lodash');
 const moment = require("moment");
 
 const Periodicity = require("../../domain/enum/periodicityEnum");
@@ -126,7 +127,9 @@ module.exports = {
           }
         }
 
-        return dates;
+        return _.orderBy(dates, o => {
+          return moment(o.format('YYYYMMDD'));
+        }, ['asc']);
 
       case Periodicity.WEEKLY:
         while (moment(actualDate).isBefore()) {
@@ -138,7 +141,9 @@ module.exports = {
           }
         }
         
-        return dates;
+        return _.orderBy(dates, o => {
+          return moment(o.format('YYYYMMDD'));
+        }, ['asc']);
       
       case Periodicity.MONTHLY:
         while (moment(actualDate).isBefore()) {
@@ -150,7 +155,9 @@ module.exports = {
           }
         }
         
-        return dates;
+        return _.orderBy(dates, o => {
+          return moment(o.format('YYYYMMDD'));
+        }, ['asc']);
     }
   },
 
