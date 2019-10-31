@@ -136,7 +136,9 @@ module.exports = {
               stockPrice.hasOwnProperty(key) &&
               moment(key).isSameOrAfter(actualDate)
             ) {
-              dates.push(moment(key));
+              if (!moment(key).isSameOrAfter(moment(), 'day')) {
+                dates.push(moment(key));
+              }
             }
           }
 

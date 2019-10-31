@@ -1,5 +1,5 @@
 const FinanceSerializer = {
-    serialize(finance) {    
+    serialize(finance, symbol) {    
         return {
             invested: finance[finance.length - 1].invested,
             stockTotal: finance[finance.length - 1].accumulatedStock,
@@ -9,7 +9,8 @@ const FinanceSerializer = {
                 delete f.accumulatedStock;
 
                 return f;
-            })
+            }),
+            symbol
         };
     }
 };
