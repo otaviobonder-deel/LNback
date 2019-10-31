@@ -80,8 +80,7 @@ module.exports = {
     return this.buildWallet({ dates, btcPrice, stockPrice, investment });
   },
 
-  buildWallet({ dates, btcPrice, stockPrice, investment }) {
-    // create object with investment
+  buildWallet({ dates, btcPrice, stockPrice, investment }) { // create object with investment
     let wallet = [];
     let accumulatedBtc = 0;
     let accumulatedStock = 0;
@@ -116,57 +115,52 @@ module.exports = {
 
       if(obj.invested) wallet.push(obj);
     });
-
+      
     return wallet;
   },
 
-  dateFilter({ stockPrice, periodicity, actualDate }) {
-    try {
-      // create array of dates, to reverse them
-      let dates = [];
+  dateFilter({ stockPrice, periodicity, actualDate }) { // create array of dates, to reverse them
+    let dates = [];
 
-      switch (periodicity) {
-        case Periodicity.DAILY:
-          for (let key in stockPrice) {
-            if (stockPrice.hasOwnProperty(key) 
-              && moment(key).isSameOrAfter(actualDate)
-              && !moment(key).isSameOrAfter(moment(), 'day')) {
-                dates.push(moment(key));
-            }
+    switch (periodicity) {
+      case Periodicity.DAILY:
+        for (let key in stockPrice) {
+          if (stockPrice.hasOwnProperty(key) 
+            && moment(key).isSameOrAfter(actualDate)
+            && !moment(key).isSameOrAfter(moment(), 'day')) {
+              dates.push(moment(key));
           }
+        }
 
-          if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
-          return dates;
+        if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
+        return dates;
 
-        case Periodicity.WEEKLY:
-          while (moment(actualDate).isBefore()) {
-            if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
-              dates.push(moment(actualDate));
-              actualDate = moment(actualDate).add(1, "w");
-            } else {
-              actualDate = moment(actualDate).add(1, "d");
-            }
+      case Periodicity.WEEKLY:
+        while (moment(actualDate).isBefore()) {
+          if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+            dates.push(moment(actualDate));
+            actualDate = moment(actualDate).add(1, "w");
+          } else {
+            actualDate = moment(actualDate).add(1, "d");
           }
+        }
 
-          if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
-          return dates;
+        if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
+        return dates;
 
-        case Periodicity.MONTHLY:
-          while (moment(actualDate).isBefore()) {
-            if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
-              dates.push(moment(actualDate));
-              actualDate = moment(actualDate).add(1, "M");
-            } else {
-              actualDate = moment(actualDate).add(1, "d");
-            }
+      case Periodicity.MONTHLY:
+        while (moment(actualDate).isBefore()) {
+          if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+            dates.push(moment(actualDate));
+            actualDate = moment(actualDate).add(1, "M");
+          } else {
+            actualDate = moment(actualDate).add(1, "d");
           }
+        }
 
-          if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
-          return dates;
-      }
-    } catch (e) {
-      return new Error(e);
-    }
+        if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
+      return dates;
+    } 
   },
 
   formatDate(date) {
