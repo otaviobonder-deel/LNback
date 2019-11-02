@@ -79,3 +79,6 @@ node_modules
 # Private
 *.cert
 *.macaroon
+
+# Deploy build
+deploy.tar
