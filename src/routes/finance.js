@@ -5,59 +5,64 @@ const financeController = require("../controllers/finance");
 const FinanceSerializer = require("../interface/http/FinanceSerializer");
 
 routes.get("/liststock", async (req, res) => {
-  let response;
+  let stockPriceList, response;
 
   try {
-    response = await financeController.listStockPrice(req);
+    stockPriceList = await financeController.listStockPrice(req);
+    response = res.json(stockPriceList);
   } catch (error) {
-    // Do something
+    return new Error('Error on "/liststock" endpoint');
   }
 
-  return res.json(response);
+  return response
 });
 
 routes.get("/stocksearch", async (req, res) => {
-  let response;
+  let symbolFound, response;
 
   try {
-    response = await financeController.symbolSearch(req);
+    symbolFound = await financeController.symbolSearch(req);
+    response = res.json(symbolFound);
   } catch (error) {
-    // Do something
+    return new Error('Error on "/stocksearch" endpoint');
   }
 
-  return res.json(response);
+  return response;
 });
 
 routes.get("/btc", async (req, res) => {
-  let price;
+  let price, response;
 
   try {
     price = await financeController.getBtcPrice(req);
+    response = res.json(price);
   } catch (error) {
-    // Do something
+    return new Error('Error on "/btc" endpoint');
   }
-  return res.json(price);
+  return response;
 });
 
 routes.get("/simulate", async (req, res) => {
-  let response;
+  let portfolio, response;
 
   try {
     const btcPrice = await financeController.getBtcPrice(req);
     const stockPrice = await financeController.listStockPrice(req);
 
-    response = financeController.calculatePortfolio({
+    portfolio = await financeController.calculatePortfolio({
       btcPrice,
       stockPrice,
       periodicity: req.query.periodicity,
       investment: req.query.investment,
       start_date: req.query.start_date
     });
+
+    response = res.json(FinanceSerializer.serialize(portfolio, req.query.symbol));
   } catch (error) {
-    // Do something
+    return new Error('Error on "/simulate" endpoint');
   }
 
-  return res.json(FinanceSerializer.serialize(response, req.query.symbol));
+  return response;
 });
 
 module.exports = routes;

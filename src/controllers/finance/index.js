@@ -18,8 +18,8 @@ module.exports = {
       });
       const key = Object.keys(result)[1];
       return result[key];
-    } catch (e) {
-      return new Error(e);
+    } catch (error) {
+      return new Error('Error on listStockPrice function');
     }
   },
 
@@ -43,8 +43,8 @@ module.exports = {
         stockResults.push(newProperties);
       });
       return stockResults;
-    } catch (e) {
-      return new Error(e);
+    } catch (error) {
+      return new Error('Error on symbolSearch function');
     }
   },
 
@@ -59,25 +59,27 @@ module.exports = {
         json: true
       });
       return result.dataset.data.reverse();
-    } catch (e) {
-      return new Error(e);
+    } catch (error) {
+      return new Error('Error on getBtcPrice function');
     }
   },
 
-  calculatePortfolio({
-    btcPrice,
-    stockPrice,
-    periodicity,
-    investment,
-    start_date
-  }) {
-    const dates = this.dateFilter({
-      stockPrice,
-      periodicity,
-      actualDate: moment(start_date)
-    });
+  async calculatePortfolio({ btcPrice, stockPrice, periodicity, investment, start_date }) {
+    let dates, response;
 
-    return this.buildWallet({ dates, btcPrice, stockPrice, investment });
+    try {
+      dates = this.dateFilter({
+        stockPrice,
+        periodicity,
+        actualDate: moment(start_date)
+      });
+
+      response = await this.buildWallet({ dates, btcPrice, stockPrice, investment });
+    } catch (error) {
+      return new Error('Error on calculatePortfolio function');
+    }
+
+    return response;
   },
 
   buildWallet({ dates, btcPrice, stockPrice, investment }) {

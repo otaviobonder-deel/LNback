@@ -1,17 +1,25 @@
 const FinanceSerializer = {
-  serialize(finance, symbol) {
+  serialize(financeList, symbol) {
     return {
-      invested: finance[finance.length - 1].invested,
-      stockTotal: finance[finance.length - 1].accumulatedStock,
-      btcTotal: finance[finance.length - 1].accumulatedBtc,
-      chart: finance.map(f => {
+      invested: financeList[financeList.length - 1].invested,
+      stockTotal: financeList[financeList.length - 1].accumulatedStock,
+      btcTotal: financeList[financeList.length - 1].accumulatedBtc,
+      chart: this.removeUnusedAttributes(financeList),
+      symbol
+    };
+  },
+
+  removeUnusedAttributes(financeList) {
+    try {
+      return financeList.map(f => {
         delete f.accumulatedBtc;
         delete f.accumulatedStock;
 
         return f;
-      }),
-      symbol
-    };
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 };
 
