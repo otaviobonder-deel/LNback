@@ -52,7 +52,7 @@ routes.get("/simulate", async (req, res) => {
       periodicity: req.query.periodicity,
       investment: req.query.investment,
       start_date: req.query.start_date
-    });  
+    });
   } catch (error) {
     // Do something
   }

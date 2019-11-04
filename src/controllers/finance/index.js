@@ -80,7 +80,8 @@ module.exports = {
     return this.buildWallet({ dates, btcPrice, stockPrice, investment });
   },
 
-  buildWallet({ dates, btcPrice, stockPrice, investment }) { // create object with investment
+  buildWallet({ dates, btcPrice, stockPrice, investment }) {
+    // create object with investment
     let wallet = [];
     let accumulatedBtc = 0;
     let accumulatedStock = 0;
@@ -104,31 +105,34 @@ module.exports = {
         }
       });
 
-
       for (let key in stockPrice) {
         if (stockPrice.hasOwnProperty(key) && moment(key).isSame(day)) {
           accumulatedStock += investment / stockPrice[key]["4. close"];
           obj.accumulatedStock = accumulatedStock;
-          obj.investment_total_stock = accumulatedStock * stockPrice[key]["4. close"];
+          obj.investment_total_stock =
+            accumulatedStock * stockPrice[key]["4. close"];
         }
       }
 
-      if(obj.invested) wallet.push(obj);
+      if (obj.invested) wallet.push(obj);
     });
-      
+
     return wallet;
   },
 
-  dateFilter({ stockPrice, periodicity, actualDate }) { // create array of dates, to reverse them
+  dateFilter({ stockPrice, periodicity, actualDate }) {
+    // create array of dates, to reverse them
     let dates = [];
 
     switch (periodicity) {
       case Periodicity.DAILY:
         for (let key in stockPrice) {
-          if (stockPrice.hasOwnProperty(key) 
-            && moment(key).isSameOrAfter(actualDate)
-            && !moment(key).isSameOrAfter(moment(), 'day')) {
-              dates.push(moment(key));
+          if (
+            stockPrice.hasOwnProperty(key) &&
+            moment(key).isSameOrAfter(actualDate) &&
+            !moment(key).isSameOrAfter(moment(), "day")
+          ) {
+            dates.push(moment(key));
           }
         }
 
@@ -159,8 +163,8 @@ module.exports = {
         }
 
         if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
-      return dates;
-    } 
+        return dates;
+    }
   },
 
   formatDate(date) {
