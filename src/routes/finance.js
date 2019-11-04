@@ -14,7 +14,7 @@ routes.get("/liststock", async (req, res) => {
     return new Error('Error on "/liststock" endpoint');
   }
 
-  return response
+  return response;
 });
 
 routes.get("/stocksearch", async (req, res) => {
@@ -43,6 +43,7 @@ routes.get("/btc", async (req, res) => {
 });
 
 routes.get("/simulate", async (req, res) => {
+  req.setTimeout(300000);
   let portfolio, response;
 
   try {
@@ -57,7 +58,9 @@ routes.get("/simulate", async (req, res) => {
       start_date: req.query.start_date
     });
 
-    response = res.json(FinanceSerializer.serialize(portfolio, req.query.symbol));
+    response = res.json(
+      FinanceSerializer.serialize(portfolio, req.query.symbol)
+    );
   } catch (error) {
     return new Error('Error on "/simulate" endpoint');
   }
