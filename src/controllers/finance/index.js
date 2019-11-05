@@ -113,8 +113,7 @@ module.exports = {
             });
 
             for (let key in stockPrice) {
-                // eslint-disable-next-line no-prototype-builtins
-                if (stockPrice.hasOwnProperty(key) && moment(key).isSame(day)) {
+                if ('key' in stockPrice && moment(key).isSame(day, 'day')) {
                     accumulatedStock += investment / stockPrice[key]['4. close'];
                     obj.accumulatedStock = accumulatedStock;
                     obj.investment_total_stock = accumulatedStock * stockPrice[key]['4. close'];
@@ -133,8 +132,7 @@ module.exports = {
         switch (periodicity) {
         case Periodicity.DAILY:
             for (let key in stockPrice) {
-                // eslint-disable-next-line no-prototype-builtins
-                if (stockPrice.hasOwnProperty(key) && moment(key).isSameOrAfter(actualDate) && !moment(key).isSameOrAfter(moment(), 'day')) {
+                if ('key' in stockPrice && moment(key).isSameOrAfter(actualDate) && !moment(key).isSameOrAfter(moment(), 'day')) {
                     dates.push(moment(key));
                 }
             }
@@ -144,8 +142,7 @@ module.exports = {
 
         case Periodicity.WEEKLY:
             while (moment(actualDate).isBefore()) {
-                // eslint-disable-next-line no-prototype-builtins
-                if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+                if (this.formatDate(actualDate) in stockPrice) {
                     dates.push(moment(actualDate));
                     actualDate = moment(actualDate).add(1, 'w');
                 } else {
@@ -158,8 +155,7 @@ module.exports = {
 
         case Periodicity.MONTHLY:
             while (moment(actualDate).isBefore()) {
-                // eslint-disable-next-line no-prototype-builtins
-                if (stockPrice.hasOwnProperty(this.formatDate(actualDate))) {
+                if (this.formatDate(actualDate) in stockPrice) {
                     dates.push(moment(actualDate));
                     actualDate = moment(actualDate).add(1, 'M');
                 } else {
