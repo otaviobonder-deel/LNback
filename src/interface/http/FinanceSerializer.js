@@ -18,7 +18,7 @@ const FinanceSerializer = {
                 return f;
             });
         } catch (error) {
-            throw new Error(error);
+            return new Error('Error on serialize function');
         }
     }
 };

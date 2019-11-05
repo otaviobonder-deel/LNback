@@ -8,7 +8,7 @@ routes.get('/liststock', async (req, res) => {
     let stockPriceList, response;
 
     try {
-        stockPriceList = await financeController.listStockPrice(req);
+        stockPriceList = await financeController.getStockPriceList(req);
         response = res.json(stockPriceList);
     } catch (error) {
         return new Error('Error on "/liststock" endpoint');
@@ -21,7 +21,7 @@ routes.get('/stocksearch', async (req, res) => {
     let symbolFound, response;
 
     try {
-        symbolFound = await financeController.symbolSearch(req);
+        symbolFound = await financeController.findSymbol(req);
         response = res.json(symbolFound);
     } catch (error) {
         return new Error('Error on "/stocksearch" endpoint');
@@ -34,7 +34,7 @@ routes.get('/btc', async (req, res) => {
     let price, response;
 
     try {
-        price = await financeController.getBtcPrice(req);
+        price = await financeController.getBitcoinPrice(req);
         response = res.json(price);
     } catch (error) {
         return new Error('Error on "/btc" endpoint');
@@ -47,10 +47,10 @@ routes.get('/simulate', async (req, res) => {
     let portfolio, response;
 
     try {
-        const btcPrice = await financeController.getBtcPrice(req);
-        const stockPrice = await financeController.listStockPrice(req);
+        const btcPrice = await financeController.getBitcoinPrice(req);
+        const stockPrice = await financeController.getStockPriceList(req);
 
-        portfolio = await financeController.calculatePortfolio({
+        portfolio = await financeController.generatePortfolio({
             btcPrice,
             stockPrice,
             periodicity: req.query.periodicity,

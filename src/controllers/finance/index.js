@@ -5,7 +5,7 @@ const moment = require('moment');
 const Periodicity = require('../../domain/enum/periodicityEnum');
 
 module.exports = {
-    async listStockPrice(req) {
+    async getStockPriceList(req) {
         try {
             const result = await rp({
                 uri: process.env.FINANCEAPIURL,
@@ -22,11 +22,28 @@ module.exports = {
 
             return result[key];
         } catch (error) {
-            return new Error('Error on listStockPrice function');
+            return new Error('Error on getStockPriceList function');
         }
     },
 
-    async symbolSearch(req) {
+    async getBitcoinPrice(req) {
+        try {
+            const result = await rp({
+                uri: `${process.env.QUANDLURL}/BITSTAMP/USD`,
+                qs: {
+                    start_date: req.query.start_date,
+                    api_key: process.env.QUANDLAPI
+                },
+                json: true
+            });
+
+            return result.dataset.data.reverse();
+        } catch (error) {
+            return new Error('Error on getBitcoinPrice function');
+        }
+    },
+
+    async findSymbol(req) {
         try {
             let results = await rp({
                 uri: process.env.FINANCEAPIURL,
@@ -50,32 +67,15 @@ module.exports = {
 
             return stockResults;
         } catch (error) {
-            return new Error('Error on symbolSearch function');
+            return new Error('Error on findSymbol function');
         }
     },
 
-    async getBtcPrice(req) {
-        try {
-            const result = await rp({
-                uri: `${process.env.QUANDLURL}/BITSTAMP/USD`,
-                qs: {
-                    start_date: req.query.start_date,
-                    api_key: process.env.QUANDLAPI
-                },
-                json: true
-            });
-
-            return result.dataset.data.reverse();
-        } catch (error) {
-            return new Error('Error on getBtcPrice function');
-        }
-    },
-
-    async calculatePortfolio({ btcPrice, stockPrice, periodicity, investment, start_date }) {
+    async generatePortfolio({ btcPrice, stockPrice, periodicity, investment, start_date }) {
         let dates, response;
 
         try {
-            dates = await this.dateFilter({
+            dates = await this.dateListFilter({
                 stockPrice,
                 periodicity,
                 actualDate: moment(start_date)
@@ -83,7 +83,7 @@ module.exports = {
 
             response = await this.buildWallet({ dates, btcPrice, stockPrice, investment });
         } catch (error) {
-            return new Error('Error on calculatePortfolio function');
+            return new Error('Error on generatePortfolio function');
         }
 
         return response;
@@ -113,7 +113,7 @@ module.exports = {
             });
 
             for (let key in stockPrice) {
-                if (stockPrice.hasOwnProperty(key) && moment(key).isSame(day, 'day')) {
+                if (moment(key).isSame(day, 'day')) {
                     accumulatedStock += investment / stockPrice[key]['4. close'];
                     obj.accumulatedStock = accumulatedStock;
                     obj.investment_total_stock = accumulatedStock * stockPrice[key]['4. close'];
@@ -126,7 +126,7 @@ module.exports = {
         return wallet;
     },
 
-    dateFilter({ stockPrice, periodicity, actualDate }) { // create array of dates, to reverse them
+    dateListFilter({ stockPrice, periodicity, actualDate }) { // create array of dates, to reverse them
         let dates = [];
 
         switch (periodicity) {
@@ -141,12 +141,12 @@ module.exports = {
             return dates;
 
         case Periodicity.WEEKLY:
-            while (moment(actualDate).isBefore()) {
-                if (this.formatDate(actualDate) in stockPrice) {
+            while (actualDate.isBefore()) {
+                if (actualDate.format('YYYY-MM-DD') in stockPrice) {
                     dates.push(moment(actualDate));
-                    actualDate = moment(actualDate).add(1, 'w');
+                    actualDate.add(1, 'w');
                 } else {
-                    actualDate = moment(actualDate).add(1, 'd');
+                    actualDate.add(1, 'd');
                 }
             }
 
@@ -154,28 +154,17 @@ module.exports = {
             return dates;
 
         case Periodicity.MONTHLY:
-            while (moment(actualDate).isBefore()) {
-                if (this.formatDate(actualDate) in stockPrice) {
+            while (actualDate.isBefore()) {
+                if (actualDate.format('YYYY-MM-DD') in stockPrice) {
                     dates.push(moment(actualDate));
-                    actualDate = moment(actualDate).add(1, 'M');
+                    actualDate.add(1, 'M').date(1);
                 } else {
-                    actualDate = moment(actualDate).add(1, 'd');
+                    actualDate.add(1, 'd');
                 }
             }
 
             if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
             return dates;
         }
-    },
-
-    formatDate(date) {
-        let month = '' + (moment(date).month() + 1),
-            day = '' + moment(date).date(),
-            year = moment(date).year();
-
-        if (month.length < 2) month = '0' + month;
-        if (day.length < 2) day = '0' + day;
-
-        return [year, month, day].join('-');
     }
 };
