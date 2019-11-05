@@ -1,9 +1,9 @@
+/* eslint-disable no-prototype-builtins */
 const rp = require('request-promise');
 const moment = require('moment');
 
 const Periodicity = require('../../domain/enum/periodicityEnum');
 
-// eslint-disable-next-line no-prototype-builtins
 module.exports = {
     async listStockPrice(req) {
         try {
@@ -113,7 +113,7 @@ module.exports = {
             });
 
             for (let key in stockPrice) {
-                if ('key' in stockPrice && moment(key).isSame(day, 'day')) {
+                if (stockPrice.hasOwnProperty(key) && moment(key).isSame(day, 'day')) {
                     accumulatedStock += investment / stockPrice[key]['4. close'];
                     obj.accumulatedStock = accumulatedStock;
                     obj.investment_total_stock = accumulatedStock * stockPrice[key]['4. close'];
@@ -132,7 +132,7 @@ module.exports = {
         switch (periodicity) {
         case Periodicity.DAILY:
             for (let key in stockPrice) {
-                if ('key' in stockPrice && moment(key).isSameOrAfter(actualDate) && !moment(key).isSameOrAfter(moment(), 'day')) {
+                if (stockPrice.hasOwnProperty(key) && moment(key).isSameOrAfter(actualDate) && !moment(key).isSameOrAfter(moment(), 'day')) {
                     dates.push(moment(key));
                 }
             }
