@@ -43,6 +43,7 @@ routes.get('/btc', async (req, res) => {
 });
 
 routes.get('/simulate', async (req, res) => {
+    req.setTimeout(300000);
     let portfolio, response;
 
     try {
