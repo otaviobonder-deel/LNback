@@ -34,7 +34,7 @@ routes.get('/btc', async (req, res) => {
     let price, response;
 
     try {
-        price = await financeController.getBitcoinPrice(req);
+        price = await financeController.getBitcoinPriceList(req);
         response = res.json(price);
     } catch (error) {
         return new Error('Error on "/btc" endpoint');
@@ -47,14 +47,14 @@ routes.get('/simulate', async (req, res) => {
     let portfolio, response;
 
     try {
-        const btcPrice = await financeController.getBitcoinPrice(req);
-        const stockPrice = await financeController.getStockPriceList(req);
+        const bitcoinPriceList = await financeController.getBitcoinPriceList(req);
+        const stockPriceList = await financeController.getStockPriceList(req);
 
         portfolio = await financeController.generatePortfolio({
-            btcPrice,
-            stockPrice,
+            bitcoinPriceList,
+            stockPriceList,
             periodicity: req.query.periodicity,
-            investment: req.query.investment,
+            inputValue: req.query.investment,
             start_date: req.query.start_date
         });
 

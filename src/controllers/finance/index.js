@@ -26,7 +26,7 @@ module.exports = {
         }
     },
 
-    async getBitcoinPrice(req) {
+    async getBitcoinPriceList(req) {
         try {
             const result = await rp({
                 uri: `${process.env.QUANDLURL}/BITSTAMP/USD`,
@@ -39,7 +39,7 @@ module.exports = {
 
             return result.dataset.data.reverse();
         } catch (error) {
-            return new Error('Error on getBitcoinPrice function');
+            return new Error('Error on getBitcoinPriceList function');
         }
     },
 
@@ -71,17 +71,17 @@ module.exports = {
         }
     },
 
-    async generatePortfolio({ btcPrice, stockPrice, periodicity, investment, start_date }) {
-        let dates, response;
+    async generatePortfolio({ bitcoinPriceList, stockPriceList, periodicity, inputValue, start_date }) {
+        let commonDates, response;
 
         try {
-            dates = await this.dateListFilter({
-                stockPrice,
+            commonDates = await this.dateListFilter({
+                stockPriceList,
                 periodicity,
-                actualDate: moment(start_date)
+                startDate: moment(start_date)
             });
 
-            response = await this.buildWallet({ dates, btcPrice, stockPrice, investment });
+            response = await this.buildWallet({ commonDates, bitcoinPriceList, stockPriceList, inputValue });
         } catch (error) {
             return new Error('Error on generatePortfolio function');
         }
@@ -89,21 +89,21 @@ module.exports = {
         return response;
     },
 
-    buildWallet({ dates, btcPrice, stockPrice, investment }) { // create object with investment
+    buildWallet({ commonDates, bitcoinPriceList, stockPriceList, inputValue }) { // create object with inputValue
         let wallet = [];
         let accumulatedBtc = 0;
         let accumulatedStock = 0;
         let invested = 0;
 
-        dates.forEach(day => {
+        commonDates.forEach(day => {
             let obj = {};
 
-            btcPrice.forEach(btcDay => { // create object of bitcoin price
+            bitcoinPriceList.forEach(btcDay => { // create object of bitcoin price
                 let btcDate = moment(btcDay[0]);
 
                 if (day.isSame(btcDate, 'day')) {
-                    accumulatedBtc += investment / btcDay[3];
-                    invested += parseFloat(investment);
+                    accumulatedBtc += inputValue / btcDay[3];
+                    invested += parseFloat(inputValue);
 
                     obj.date = btcDate;
                     obj.accumulatedBtc = accumulatedBtc;
@@ -112,11 +112,11 @@ module.exports = {
                 }
             });
 
-            for (let key in stockPrice) {
+            for (let key in stockPriceList) {
                 if (moment(key).isSame(day, 'day')) {
-                    accumulatedStock += investment / stockPrice[key]['4. close'];
+                    accumulatedStock += inputValue / stockPriceList[key]['4. close'];
                     obj.accumulatedStock = accumulatedStock;
-                    obj.investment_total_stock = accumulatedStock * stockPrice[key]['4. close'];
+                    obj.investment_total_stock = accumulatedStock * stockPriceList[key]['4. close'];
                 }
             }
 
@@ -126,45 +126,45 @@ module.exports = {
         return wallet;
     },
 
-    dateListFilter({ stockPrice, periodicity, actualDate }) { // create array of dates, to reverse them
-        let dates = [];
+    dateListFilter({ stockPriceList, periodicity, startDate }) { // create array of dates, to reverse them
+        let commonDates = [];
 
         switch (periodicity) {
         case Periodicity.DAILY:
-            for (let key in stockPrice) {
-                if (stockPrice.hasOwnProperty(key) && moment(key).isSameOrAfter(actualDate) && !moment(key).isSameOrAfter(moment(), 'day')) {
-                    dates.push(moment(key));
+            for (let key in stockPriceList) {
+                if (stockPriceList.hasOwnProperty(key) && moment(key).isSameOrAfter(startDate) && !moment(key).isSameOrAfter(moment(), 'day')) {
+                    commonDates.push(moment(key));
                 }
             }
 
-            if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
-            return dates;
+            if (moment(commonDates[0]).isAfter(commonDates[1])) commonDates.reverse();
+            return commonDates;
 
         case Periodicity.WEEKLY:
-            while (actualDate.isBefore()) {
-                if (actualDate.format('YYYY-MM-DD') in stockPrice) {
-                    dates.push(moment(actualDate));
-                    actualDate.add(1, 'w');
+            while (startDate.isBefore()) {
+                if (startDate.format('YYYY-MM-DD') in stockPriceList) {
+                    commonDates.push(moment(startDate));
+                    startDate.add(1, 'w');
                 } else {
-                    actualDate.add(1, 'd');
+                    startDate.add(1, 'd');
                 }
             }
 
-            if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
-            return dates;
+            if (moment(commonDates[0]).isAfter(commonDates[1])) commonDates.reverse();
+            return commonDates;
 
         case Periodicity.MONTHLY:
-            while (actualDate.isBefore()) {
-                if (actualDate.format('YYYY-MM-DD') in stockPrice) {
-                    dates.push(moment(actualDate));
-                    actualDate.add(1, 'M').date(1);
+            while (startDate.isBefore()) {
+                if (startDate.format('YYYY-MM-DD') in stockPriceList) {
+                    commonDates.push(moment(startDate));
+                    startDate.add(1, 'M').date(1);
                 } else {
-                    actualDate.add(1, 'd');
+                    startDate.add(1, 'd');
                 }
             }
 
-            if (moment(dates[0]).isAfter(dates[1])) dates.reverse();
-            return dates;
+            if (moment(commonDates[0]).isAfter(commonDates[1])) commonDates.reverse();
+            return commonDates;
         }
     }
 };
