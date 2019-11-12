@@ -173,7 +173,8 @@ module.exports = {
         let obj = {};
 
         list.forEach(e => {
-            obj[e[0]] = e;
+            if(e[3] !== 0)
+                obj[e[0]] = e;
         });
 
         return obj;
