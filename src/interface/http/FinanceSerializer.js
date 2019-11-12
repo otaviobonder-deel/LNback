@@ -3,7 +3,7 @@ const FinanceSerializer = {
         return {
             invested: financeList[financeList.length - 1].invested,
             stockTotal: financeList[financeList.length - 1].accumulatedStock,
-            btcTotal: financeList[financeList.length - 1].accumulatedBtc,
+            btcTotal: financeList[financeList.length - 1].accumulatedBtc === Infinity ? 'Infinity' : financeList[financeList.length - 1].accumulatedBtc,
             chart: this.removeUnusedAttributes(financeList),
             symbol
         };

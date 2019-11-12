@@ -11,7 +11,7 @@ routes.get('/liststock', async (req, res) => {
 
         return res.json(stockPriceList);
     } catch (error) {
-        return res.json('Error on "/liststock" endpoint');
+        return res.json(`Error on /liststock endpoint -> ${error.message}`);
     }
 });
 
@@ -21,7 +21,7 @@ routes.get('/stocksearch', async (req, res) => {
 
         return res.json(symbolFound);
     } catch (error) {
-        return res.json('Error on "/stocksearch" endpoint');
+        return res.json(`Error on /stocksearch endpoint -> ${error.message}`);
     }
 });
 
@@ -31,7 +31,7 @@ routes.get('/btc', async (req, res) => {
 
         return res.json(price);
     } catch (error) {
-        return res.json('Error on "/btc" endpoint');
+        return res.json(`Error on /btc endpoint -> ${error.message}`);
     }
 });
 
@@ -39,8 +39,11 @@ routes.get('/simulate', async (req, res) => {
     req.setTimeout(300000);
 
     try {
-        const bitcoinPriceList = await financeController.getBitcoinPriceList(req);
-        const stockPriceList = await financeController.getStockPriceList(req);
+        const promises = [];
+        promises.push(financeController.getBitcoinPriceList(req));
+        promises.push(financeController.getStockPriceList(req));
+
+        const [bitcoinPriceList, stockPriceList] = await Promise.all(promises);
 
         const portfolio = await financeController.generatePortfolio({
             bitcoinPriceList,
@@ -52,7 +55,7 @@ routes.get('/simulate', async (req, res) => {
 
         return res.json(FinanceSerializer.serialize(portfolio, req.query.symbol));
     } catch (error) {
-        return res.json('Error on "/simulate" endpoint');
+        return res.json(`Error on /simulate endpoint -> ${error.message}`);
     }
 });
 

@@ -95,38 +95,34 @@ module.exports = {
         let accumulatedBtc = 0;
         let accumulatedStock = 0;
         let invested = 0;
-        let obj;
 
-        commonDates.forEach(day => {
-            obj = {};
-            let { ...stockList } = stockPriceList;
+        const bitcoinList = this.createObjFromList(bitcoinPriceList);
 
-            bitcoinPriceList.find((btcDay, index) => { // create object of bitcoin price
-                if (moment(btcDay[0]).isSame(day, 'day')) {
-                    accumulatedBtc += inputValue / btcDay[3];
-                    invested += parseFloat(inputValue);
+        for (let day of commonDates) {
+            let obj = {};
 
-                    obj.date = moment(btcDay[0]);
-                    obj.accumulatedBtc = accumulatedBtc;
-                    obj.invested = invested;
-                    obj.investment_total_btc = accumulatedBtc * btcDay[3];
-                    bitcoinPriceList = bitcoinPriceList.slice(index);
-                    return true;
-                }
-            });
+            const found = bitcoinList[day.format('YYYY-MM-DD')];
 
-            for (let key in stockList) {
-                if (moment(key).isSame(day, 'day')) {
-                    accumulatedStock += inputValue / stockList[key]['4. close'];
-                    obj.accumulatedStock = accumulatedStock;
-                    obj.investment_total_stock = accumulatedStock * stockList[key]['4. close'];
-                } else {
-                    delete stockList[key];
-                }
+            if (found) {
+                accumulatedBtc += inputValue / found[3];
+                invested += parseFloat(inputValue);
+
+                obj.date = moment(found[0]);
+                obj.accumulatedBtc = accumulatedBtc;
+                obj.invested = invested;
+                obj.investment_total_btc = accumulatedBtc * found[3];
+            }
+
+            const stockList = stockPriceList[day.format('YYYY-MM-DD')];
+
+            if (stockList) {
+                accumulatedStock += inputValue / stockList['4. close'];
+                obj.accumulatedStock = accumulatedStock;
+                obj.investment_total_stock = accumulatedStock * stockList['4. close'];
             }
 
             if (obj.invested) wallet.push(obj);
-        });
+        }
 
         return wallet;
     },
@@ -171,5 +167,15 @@ module.exports = {
 
         if (moment(commonDates[0]).isAfter(commonDates[1])) commonDates.reverse();
         return commonDates;
+    },
+
+    createObjFromList(list) {
+        let obj = {};
+
+        list.forEach(e => {
+            obj[e[0]] = e;
+        });
+
+        return obj;
     }
 };
