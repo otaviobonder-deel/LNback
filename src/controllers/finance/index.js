@@ -2,6 +2,7 @@
 const rp = require('request-promise');
 const moment = require('moment');
 
+
 const Periodicity = require('../../domain/enum/periodicityEnum');
 
 module.exports = {
@@ -29,7 +30,7 @@ module.exports = {
     async getBitcoinPriceList(req) {
         try {
             const result = await rp({
-                uri: `${process.env.QUANDLURL}/BITSTAMP/USD`,
+                uri: `${process.env.QUANDLURL}/BCHARTS/BITSTAMPUSD`,
                 qs: {
                     start_date: req.query.start_date,
                     api_key: process.env.QUANDLAPI
@@ -94,29 +95,33 @@ module.exports = {
         let accumulatedBtc = 0;
         let accumulatedStock = 0;
         let invested = 0;
+        let obj;
 
         commonDates.forEach(day => {
-            let obj = {};
+            obj = {};
+            let { ...stockList } = stockPriceList;
 
-            bitcoinPriceList.forEach(btcDay => { // create object of bitcoin price
-                let btcDate = moment(btcDay[0]);
-
-                if (day.isSame(btcDate, 'day')) {
+            bitcoinPriceList.find((btcDay, index) => { // create object of bitcoin price
+                if (moment(btcDay[0]).isSame(day, 'day')) {
                     accumulatedBtc += inputValue / btcDay[3];
                     invested += parseFloat(inputValue);
 
-                    obj.date = btcDate;
+                    obj.date = moment(btcDay[0]);
                     obj.accumulatedBtc = accumulatedBtc;
                     obj.invested = invested;
                     obj.investment_total_btc = accumulatedBtc * btcDay[3];
+                    bitcoinPriceList = bitcoinPriceList.slice(index);
+                    return true;
                 }
             });
 
-            for (let key in stockPriceList) {
+            for (let key in stockList) {
                 if (moment(key).isSame(day, 'day')) {
-                    accumulatedStock += inputValue / stockPriceList[key]['4. close'];
+                    accumulatedStock += inputValue / stockList[key]['4. close'];
                     obj.accumulatedStock = accumulatedStock;
-                    obj.investment_total_stock = accumulatedStock * stockPriceList[key]['4. close'];
+                    obj.investment_total_stock = accumulatedStock * stockList[key]['4. close'];
+                } else {
+                    delete stockList[key];
                 }
             }
 
@@ -137,8 +142,7 @@ module.exports = {
                 }
             }
 
-            if (moment(commonDates[0]).isAfter(commonDates[1])) commonDates.reverse();
-            return commonDates;
+            break;
 
         case Periodicity.WEEKLY:
             while (startDate.isBefore()) {
@@ -150,8 +154,7 @@ module.exports = {
                 }
             }
 
-            if (moment(commonDates[0]).isAfter(commonDates[1])) commonDates.reverse();
-            return commonDates;
+            break;
 
         case Periodicity.MONTHLY:
             while (startDate.isBefore()) {
@@ -163,8 +166,10 @@ module.exports = {
                 }
             }
 
-            if (moment(commonDates[0]).isAfter(commonDates[1])) commonDates.reverse();
-            return commonDates;
+            break;
         }
+
+        if (moment(commonDates[0]).isAfter(commonDates[1])) commonDates.reverse();
+        return commonDates;
     }
 };
