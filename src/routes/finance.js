@@ -11,7 +11,7 @@ routes.get('/liststock', async (req, res) => {
 
         return res.json(stockPriceList);
     } catch (error) {
-        return res.json(`Error on /liststock endpoint -> ${error.message}`);
+        return res.status(500).json({ message: `Error on /liststock endpoint -> ${error.message}` });
     }
 });
 
@@ -21,7 +21,7 @@ routes.get('/stocksearch', async (req, res) => {
 
         return res.json(symbolFound);
     } catch (error) {
-        return res.json(`Error on /stocksearch endpoint -> ${error.message}`);
+        return res.status(500).json({ message: `Error on /stocksearch endpoint -> ${error.message}` });
     }
 });
 
@@ -31,7 +31,7 @@ routes.get('/btc', async (req, res) => {
 
         return res.json(price);
     } catch (error) {
-        return res.json(`Error on /btc endpoint -> ${error.message}`);
+        return res.status(500).json({ message: `Error on /btc endpoint -> ${error.message}` });
     }
 });
 
@@ -55,7 +55,7 @@ routes.get('/simulate', async (req, res) => {
 
         return res.json(FinanceSerializer.serialize(portfolio, req.query.symbol));
     } catch (error) {
-        return res.json(`Error on /simulate endpoint -> ${error.message}`);
+        return res.status(500).json({ message: `Error on /simulate endpoint -> ${error.message}` });
     }
 });
 

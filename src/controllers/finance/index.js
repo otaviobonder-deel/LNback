@@ -23,7 +23,7 @@ module.exports = {
 
             return result[key];
         } catch (error) {
-            return new Error('Error on getStockPriceList function');
+            throw new Error(`Error on getStockPriceList function -> ${error.message}`);
         }
     },
 
@@ -40,7 +40,7 @@ module.exports = {
 
             return result.dataset.data.reverse();
         } catch (error) {
-            return new Error('Error on getBitcoinPriceList function');
+            throw new Error(`Error on getBitcoinPriceList function -> ${error.message}`);
         }
     },
 
@@ -68,7 +68,7 @@ module.exports = {
 
             return stockResults;
         } catch (error) {
-            return new Error('Error on findSymbol function');
+            throw new Error(`Error on findSymbol function -> ${error.message}`);
         }
     },
 
@@ -84,7 +84,7 @@ module.exports = {
 
             response = await this.buildWallet({ commonDates, bitcoinPriceList, stockPriceList, inputValue });
         } catch (error) {
-            return new Error('Error on generatePortfolio function');
+            throw new Error(`Error on generatePortfolio function -> ${error.message}`);
         }
 
         return response;
