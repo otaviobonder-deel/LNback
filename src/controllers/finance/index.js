@@ -1,4 +1,3 @@
-/* eslint-disable no-prototype-builtins */
 const rp = require('request-promise');
 const moment = require('moment');
 
@@ -132,6 +131,7 @@ module.exports = {
         switch (periodicity) {
         case Periodicity.DAILY:
             for (let key in stockPriceList) {
+                // eslint-disable-next-line no-prototype-builtins
                 if (stockPriceList.hasOwnProperty(key) && moment(key).isSameOrAfter(startDate) && !moment(key).isSameOrAfter(moment(), 'day')) {
                     commonDates.push(moment(key));
                 }
