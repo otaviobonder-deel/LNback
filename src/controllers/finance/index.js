@@ -2,7 +2,6 @@
 const rp = require('request-promise');
 const moment = require('moment');
 
-
 const Periodicity = require('../../domain/enum/periodicityEnum');
 
 module.exports = {
