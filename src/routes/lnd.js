@@ -82,7 +82,7 @@ routes.post('/openchannel', async (req, res) => {
             local_tokens: tokens,
             is_private,
             partner_public_key: public_key,
-            chain_fee_tokens_per_vbyte: 1
+            chain_fee_tokens_per_vbyte: 5
         })
         return res.json(channel)
     } catch (e) {
