@@ -74,14 +74,20 @@ routes.get('/btcaddress', async (req, res) => {
 })
 
 routes.post('/openchannel', async (req, res) => {
-    const { tokens, is_private, public_key } = req.query
-    const channel = await lnService.openChannel({
-        lnd,
-        tokens,
-        is_private,
-        public_key
-    })
-    return res.json(channel)
+    const { tokens, is_private, public_key, socket } = req.body
+    try {
+        await lnService.addPeer({ lnd, socket, public_key })
+        const channel = await lnService.openChannel({
+            lnd,
+            local_tokens: tokens,
+            is_private,
+            partner_public_key: public_key,
+            chain_fee_tokens_per_vbyte: 1
+        })
+        return res.json(channel)
+    } catch (e) {
+        return res.status(e[0]).send({ error: e[2].details })
+    }
 })
 
 module.exports = routes
