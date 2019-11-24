@@ -90,4 +90,12 @@ routes.post('/openchannel', async (req, res) => {
     }
 })
 
+routes.get('/walletbalance', async (req, res) => {
+    try {
+        return res.json(await lnService.getChainBalance({ lnd }))
+    } catch (e) {
+        return res.status(500).send({ error: 'Error getting wallet balance' })
+    }
+})
+
 module.exports = routes
