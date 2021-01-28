@@ -9,7 +9,7 @@ module.exports = {
             const result = await rp({
                 uri: process.env.FINANCEAPIURL,
                 qs: {
-                    function: 'TIME_SERIES_DAILY',
+                    function: 'TIME_SERIES_DAILY_ADJUSTED',
                     symbol: req.query.symbol,
                     outputsize: 'full',
                     apikey: process.env.FINANCEAPIURL
@@ -108,15 +108,15 @@ module.exports = {
                 obj.date = moment(found[0]);
                 obj.accumulatedBtc = accumulatedBtc;
                 obj.invested = invested;
-                obj.investment_total_btc = accumulatedBtc * found[3];
+                obj.investmentTotalBtc = accumulatedBtc * found[3];
             }
 
             const stockList = stockPriceList[day.format('YYYY-MM-DD')];
 
             if (stockList) {
-                accumulatedStock += inputValue / stockList['4. close'];
+                accumulatedStock = accumulatedStock * stockList['8. split coefficient'] + (inputValue / stockList['4. close']);
                 obj.accumulatedStock = accumulatedStock;
-                obj.investment_total_stock = accumulatedStock * stockList['4. close'];
+                obj.investmentTotalStock = accumulatedStock * stockList['4. close'];
             }
 
             if (obj.invested) wallet.push(obj);
