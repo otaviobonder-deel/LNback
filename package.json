@@ -7,7 +7,8 @@
     "audit": "npm audit --registry=https://registry.npmjs.org/",
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "debug": "node --nolazy --inspect-brk=9229 server.js"
+    "debug": "node --nolazy --inspect-brk=9229 server.js",
+    "deploy": "tar -cvf ./deploy.tar --exclude='.git' ./* && caprover deploy -t ./deploy.tar"
   },
   "dependencies": {
     "awilix": "^4.3.1",
