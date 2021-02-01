@@ -10,7 +10,7 @@ const cors = require('cors');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-if (process.env.ENVIRONMENT === 'development') app.use(morgan('dev'));
+app.use(morgan('dev'));
 
 // set cache control
 app.use(cache);
