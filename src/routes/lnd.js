@@ -26,7 +26,7 @@ routes.get('/forwardinghistory', async (req, res) => {
 
 routes.get('/nodeinfo', async (req, res) => {
     const node = await lnService.getWalletInfo({ lnd })
-    res.set('Cache-control', 'no-cache')
+    res.set('Cache-control', 'no-store')
     return res.json(node)
 })
 
@@ -98,7 +98,7 @@ routes.get('/walletbalance', async (req, res) => {
         } = await lnService.getChainBalance({ lnd })
         return res.json({ chainBalance })
     } catch (e) {
-        res.set('Cache-control', 'no-cache')
+        res.set('Cache-control', 'no-store')
         return res.status(400).send({ error: 'Error getting wallet balance' })
     }
 })
